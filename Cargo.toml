@@ -1,0 +1,23 @@
+[package]
+name = "parallel-evm-explorer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7.9"
+clap = { version = "4.5.23", features = ["derive"] }
+config = "0.14.1"
+eyre = "0.6.12"
+reqwest = { version = "0.12.9", features = ["json"] }
+serde = { version = "1.0.215", features = ["derive"] }
+serde_derive = "1.0.215"
+shadow-rs = "0.36.0"
+tokio = { version = "1.42.0", features = ["full"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
+url = { version = "2.5.4", features = ["serde"] }
+sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "postgres", "uuid", "time", "json"] }
+tower-http = { version = "0.6.2", features = ["cors", "trace", "catch-panic", "util"] }
+
+[build-dependencies]
+shadow-rs = "0.36.0"
