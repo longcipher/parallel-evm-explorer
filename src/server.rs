@@ -18,12 +18,7 @@ pub struct ServerState {
 }
 
 impl ServerState {
-    pub async fn new(database_url: &str, config: Config) -> Result<Self> {
-        let db = PgPoolOptions::new()
-            .max_connections(50)
-            .connect(database_url)
-            .await
-            .context("could not connect to database_url")?;
+    pub fn new(db: PgPool, config: Config) -> Result<Self> {
         Ok(Self {
             db,
             config: Arc::new(config),

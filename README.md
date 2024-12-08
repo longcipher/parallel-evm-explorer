@@ -1,2 +1,3 @@
-# parallel-evm-explorer
+# Parallel EVM Explorer
+
 Parallel EVM explorer

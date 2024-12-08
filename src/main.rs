@@ -1,6 +1,8 @@
 use clap::Parser;
-use eyre::Result;
+use eyre::{Context, Result};
+use server::ServerState;
 use shadow_rs::shadow;
+use sqlx::postgres::PgPoolOptions;
 use tracing::info;
 
 use crate::{
@@ -9,9 +11,11 @@ use crate::{
 };
 
 mod config;
+mod db;
 mod handlers;
 mod log;
 mod models;
+mod parallel_analyzer;
 mod server;
 
 shadow!(build);
@@ -27,8 +31,13 @@ async fn main() -> Result<()> {
     let config = Config::new(cli.config)?;
     info!("{:?}", config);
 
-    let server_state =
-        server::ServerState::new(config.database_url.clone().as_str(), config).await?;
+    let db = PgPoolOptions::new()
+        .max_connections(50)
+        .connect(&config.database_url)
+        .await
+        .context("could not connect to database_url")?;
+
+    let server_state = ServerState::new(db, config)?;
     server_state.run().await?;
 
     Ok(())
