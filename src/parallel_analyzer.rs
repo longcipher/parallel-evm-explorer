@@ -1,6 +1,5 @@
 use std::{
     collections::{BTreeMap, HashSet},
-    str::FromStr,
     sync::Arc,
 };
 
@@ -11,17 +10,14 @@ use alloy::{
     primitives::{Address, TxHash, B256},
     providers::{ext::DebugApi, Provider, ProviderBuilder, RootProvider},
     rpc::types::{
-        trace::geth::{
-            AccountState, GethDebugTracingOptions, GethTrace, PreStateConfig, PreStateFrame,
-        },
+        trace::geth::{AccountState, GethDebugTracingOptions, PreStateConfig},
         Transaction as AlloyTransaction,
     },
     transports::http::{Client, Http},
 };
 use eyre::Result;
 use reqwest::Url;
-use sqlx::PgPool;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use crate::db::{
     block::{Block, BlockDB},
@@ -87,10 +83,10 @@ impl ParallelAnalyzer {
         for tx in transactions.clone() {
             let data = DbTransaction {
                 block_number: tx.block_number.unwrap() as i64,
-                index: tx.transaction_index.unwrap() as i64,
-                hash: tx.inner.tx_hash().to_string(),
-                from: tx.from.to_string(),
-                to: tx.to().unwrap_or_default().to_string(),
+                tx_index: tx.transaction_index.unwrap() as i64,
+                tx_hash: tx.inner.tx_hash().to_string(),
+                tx_from: tx.from.to_string(),
+                tx_to: tx.to().unwrap_or_default().to_string(),
                 gas_price: tx.gas_price().unwrap_or_default().to_string(),
                 max_fee_per_gas: tx.max_fee_per_gas().to_string(),
                 max_priority_fee_per_gas: tx
@@ -102,7 +98,7 @@ impl ParallelAnalyzer {
                 tx_value: tx.value().to_string(),
                 input: tx.input().to_string(),
                 nonce: tx.nonce() as i64,
-                tx_type: tx.inner.tx_type() as i8,
+                tx_type: tx.inner.tx_type() as i16,
                 created_at: None,
                 updated_at: None,
             };
@@ -159,7 +155,7 @@ impl ParallelAnalyzer {
                 let prev_state = tx_states.get(&index).unwrap();
                 let mask = check_tx_dependency(prev_state, &state);
                 if mask != 0 {
-                    info!(
+                    debug!(
                         "Transaction {} depends on transaction {} with mask {:x}",
                         tx_index, index, mask
                     );
@@ -182,6 +178,10 @@ impl ParallelAnalyzer {
         let mut block_number = self.start_block;
         loop {
             let latest_block_number = self.execution_api_client.get_block_number().await?;
+            info!(
+                "Analysing block {}, latest_block: {}",
+                block_number, latest_block_number
+            );
             if block_number > latest_block_number {
                 tokio::time::sleep(tokio::time::Duration::from_secs(12)).await;
                 continue;
@@ -233,7 +233,7 @@ pub fn check_tx_dependency(prev_state: &TransactionStateSet, state: &Transaction
         .count()
         > 0
     {
-        mask = mask | 0x1;
+        mask |= 0x1;
     }
 
     // check code dependency
@@ -244,7 +244,7 @@ pub fn check_tx_dependency(prev_state: &TransactionStateSet, state: &Transaction
         .count()
         > 0
     {
-        mask = mask | 0x10;
+        mask |= 0x10;
     }
     // check storage dependency
     if prev_state
@@ -254,7 +254,7 @@ pub fn check_tx_dependency(prev_state: &TransactionStateSet, state: &Transaction
         .count()
         > 0
     {
-        mask = mask | 0x100;
+        mask |= 0x100;
     }
-    return mask;
+    mask
 }

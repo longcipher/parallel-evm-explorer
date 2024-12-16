@@ -1,6 +1,6 @@
 pub mod block;
-pub mod db;
+mod database;
 pub mod transaction;
 pub mod transaction_dag;
 
-pub use db::DB;
+pub use database::DB;

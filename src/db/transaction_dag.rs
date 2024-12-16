@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{types::time::OffsetDateTime, FromRow};
+use tracing::debug;
 
 use super::DB;
 
@@ -31,10 +32,11 @@ impl TransactionDagDB for DB {
         &self,
         transaction_dag: &TransactionDag,
     ) -> Result<(), sqlx::Error> {
+        debug!("insert transaction_dag {:?}", transaction_dag);
         sqlx::query(
             r#"
             INSERT INTO transaction_dags (block_number, source_tx, target_tx, dep_type)
-            VALUES (?,?,?,?)
+            VALUES ($1,$2,$3,$4)
             "#,
         )
         .bind(transaction_dag.block_number)
@@ -52,7 +54,7 @@ impl TransactionDagDB for DB {
     ) -> Result<Vec<TransactionDag>, sqlx::Error> {
         let transaction_dags = sqlx::query_as::<_, TransactionDag>(
             r#"
-            SELECT * FROM transaction_dags WHERE block_number = ?
+            SELECT * FROM transaction_dags WHERE block_number = $1
             "#,
         )
         .bind(block_number)

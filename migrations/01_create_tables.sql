@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE UNIQUE INDEX transactions_block_tx_idx ON transactions (block_number, tx_index);
 
 CREATE TABLE IF NOT EXISTS transaction_dags (
-    block_number BIGINT PRIMARY KEY NOT NULL,
+    block_number BIGINT NOT NULL,
     source_tx BIGINT NOT NULL,
     target_tx BIGINT NOT NULL,
     dep_type SMALLINT NOT NULL,

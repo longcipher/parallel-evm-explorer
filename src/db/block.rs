@@ -30,7 +30,8 @@ impl BlockDB for DB {
         sqlx::query(
             r#"
             INSERT INTO blocks (parent_hash, block_hash, block_number, gas_used, gas_limit, block_timestamp, base_fee_per_gas, blob_gas_used, excess_blob_gas)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (block_hash) DO NOTHING
             "#,
           )
           .bind(block.parent_hash.clone())
@@ -49,7 +50,7 @@ impl BlockDB for DB {
     async fn get_block_by_number(&self, block_number: i64) -> Result<Option<Block>, sqlx::Error> {
         let block = sqlx::query_as::<_, Block>(
             r#"
-            SELECT * FROM blocks WHERE block_number = ?
+            SELECT * FROM blocks WHERE block_number = $1
             "#,
         )
         .bind(block_number)
@@ -60,7 +61,7 @@ impl BlockDB for DB {
     async fn get_block_by_hash(&self, block_hash: &str) -> Result<Option<Block>, sqlx::Error> {
         let block = sqlx::query_as::<_, Block>(
             r#"
-            SELECT * FROM blocks WHERE block_hash = ?
+            SELECT * FROM blocks WHERE block_hash = $1
             "#,
         )
         .bind(block_hash)

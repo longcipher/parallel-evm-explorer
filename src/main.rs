@@ -46,7 +46,7 @@ async fn main() -> Result<()> {
         config.execution_api.clone(),
         config.start_block,
     );
-    tokio::join!(server_state.run(), parallel_analyzer.run());
+    let _ = tokio::join!(server_state.run(), parallel_analyzer.run());
 
     Ok(())
 }
