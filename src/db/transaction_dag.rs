@@ -1,17 +1,20 @@
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{types::time::OffsetDateTime, FromRow};
 
 use super::DB;
 
 #[derive(Debug, FromRow, Deserialize, Serialize)]
 pub struct TransactionDag {
     pub block_number: i64,
-    pub source: i64,
-    pub target: i64,
+    pub source_tx: i64,
+    pub target_tx: i64,
     /// 0x1: balance, 0x10: code, 0x100: storage
     pub dep_type: i16,
+    pub created_at: Option<OffsetDateTime>,
+    pub updated_at: Option<OffsetDateTime>,
 }
 
+#[allow(unused)]
 pub trait TransactionDagDB {
     async fn insert_transaction_dag(
         &self,
@@ -30,13 +33,13 @@ impl TransactionDagDB for DB {
     ) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
-            INSERT INTO transaction_dags (block_number, source, target, dep_type)
+            INSERT INTO transaction_dags (block_number, source_tx, target_tx, dep_type)
             VALUES (?,?,?,?)
             "#,
         )
         .bind(transaction_dag.block_number)
-        .bind(transaction_dag.source)
-        .bind(transaction_dag.target)
+        .bind(transaction_dag.source_tx)
+        .bind(transaction_dag.target_tx)
         .bind(transaction_dag.dep_type)
         .execute(&self.db)
         .await?;

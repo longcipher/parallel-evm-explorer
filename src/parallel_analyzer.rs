@@ -75,7 +75,7 @@ impl ParallelAnalyzer {
             block_number: full_block.header.number as i64,
             gas_used: full_block.header.gas_used as i64,
             gas_limit: full_block.header.gas_limit as i64,
-            timestamp: full_block.header.timestamp as i64,
+            block_timestamp: full_block.header.timestamp as i64,
             base_fee_per_gas: full_block.header.base_fee_per_gas.unwrap_or_default() as i64,
             blob_gas_used: full_block.header.blob_gas_used.unwrap_or_default() as i64,
             excess_blob_gas: full_block.header.excess_blob_gas.unwrap_or_default() as i64,
@@ -99,7 +99,7 @@ impl ParallelAnalyzer {
                     .to_string(),
                 max_fee_per_blob_gas: tx.max_fee_per_blob_gas().unwrap_or_default().to_string(),
                 gas: tx.gas_limit() as i64,
-                value: tx.value().to_string(),
+                tx_value: tx.value().to_string(),
                 input: tx.input().to_string(),
                 nonce: tx.nonce() as i64,
                 tx_type: tx.inner.tx_type() as i8,
@@ -165,9 +165,11 @@ impl ParallelAnalyzer {
                     );
                     let data = TransactionDag {
                         block_number: block_number as i64,
-                        source: tx_index as i64,
-                        target: index as i64,
+                        source_tx: tx_index as i64,
+                        target_tx: index as i64,
                         dep_type: mask,
+                        created_at: None,
+                        updated_at: None,
                     };
                     self.db.insert_transaction_dag(&data).await?;
                 }

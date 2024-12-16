@@ -15,7 +15,7 @@ pub struct Transaction {
     pub max_priority_fee_per_gas: String,
     pub max_fee_per_blob_gas: String,
     pub gas: i64,
-    pub value: String,
+    pub tx_value: String,
     pub input: String,
     pub nonce: i64,
     pub tx_type: i8,
@@ -23,6 +23,7 @@ pub struct Transaction {
     pub updated_at: Option<OffsetDateTime>,
 }
 
+#[allow(unused)]
 pub trait TransactionDB {
     async fn insert_transaction(&self, transaction: &Transaction) -> Result<(), sqlx::Error>;
     async fn get_transaction_by_hash(&self, hash: &str)
@@ -37,7 +38,7 @@ impl TransactionDB for DB {
     async fn insert_transaction(&self, transaction: &Transaction) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
-            INSERT INTO transactions (block_number, index, hash, from, to, gas_price, max_fee_per_gas, max_priority_fee_per_gas, max_fee_per_blob_gas, gas, value, input, nonce, tx_type)
+            INSERT INTO transactions (block_number, index, hash, from, to, gas_price, max_fee_per_gas, max_priority_fee_per_gas, max_fee_per_blob_gas, gas, tx_value, input, nonce, tx_type)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             "#,
             )
@@ -51,7 +52,7 @@ impl TransactionDB for DB {
             .bind(transaction.max_priority_fee_per_gas.clone())
             .bind(transaction.max_fee_per_blob_gas.clone())
             .bind(transaction.gas)
-            .bind(transaction.value.clone())
+            .bind(transaction.tx_value.clone())
             .bind(transaction.input.clone())
             .bind(transaction.nonce)
             .bind(transaction.tx_type)
