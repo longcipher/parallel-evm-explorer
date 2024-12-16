@@ -39,7 +39,9 @@ CREATE TABLE IF NOT EXISTS transaction_dags (
     block_number BIGINT PRIMARY KEY NOT NULL,
     source_tx BIGINT NOT NULL,
     target_tx BIGINT NOT NULL,
-    dep_type SMALLINT NOT NULL
+    dep_type SMALLINT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE UNIQUE INDEX transaction_dags_block_source_target_idx ON transaction_dags (block_number, source_tx, target_tx);
