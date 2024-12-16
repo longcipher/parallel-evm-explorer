@@ -24,12 +24,15 @@ use sqlx::PgPool;
 use tracing::{error, info};
 
 use crate::db::{
-    block::Block, transaction::Transaction as DbTransaction, transaction_dag::TransactionDag,
+    block::{Block, BlockDB},
+    transaction::{Transaction as DbTransaction, TransactionDB},
+    transaction_dag::{TransactionDag, TransactionDagDB},
+    DB,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParallelAnalyzer {
-    pub db: PgPool,
+    pub db: Arc<DB>,
     pub execution_api_client: Arc<RootProvider<Http<Client>>>,
     pub start_block: u64,
 }
@@ -48,7 +51,7 @@ pub struct TransactionStateSet {
 }
 
 impl ParallelAnalyzer {
-    pub fn new(db: PgPool, execution_api: Url, start_block: u64) -> Self {
+    pub fn new(db: Arc<DB>, execution_api: Url, start_block: u64) -> Self {
         let provider = ProviderBuilder::new().on_http(execution_api);
         Self {
             db,
@@ -69,71 +72,41 @@ impl ParallelAnalyzer {
         let data = Block {
             parent_hash: full_block.header.parent_hash.to_string(),
             block_hash: full_block.header.hash.to_string(),
-            block_number: full_block.header.number,
-            gas_used: full_block.header.gas_used,
-            gas_limit: full_block.header.gas_limit,
-            timestamp: full_block.header.timestamp,
-            base_fee_per_gas: full_block.header.base_fee_per_gas.unwrap_or_default(),
-            blob_gas_used: full_block.header.blob_gas_used.unwrap_or_default(),
-            excess_blob_gas: full_block.header.excess_blob_gas.unwrap_or_default(),
+            block_number: full_block.header.number as i64,
+            gas_used: full_block.header.gas_used as i64,
+            gas_limit: full_block.header.gas_limit as i64,
+            timestamp: full_block.header.timestamp as i64,
+            base_fee_per_gas: full_block.header.base_fee_per_gas.unwrap_or_default() as i64,
+            blob_gas_used: full_block.header.blob_gas_used.unwrap_or_default() as i64,
+            excess_blob_gas: full_block.header.excess_blob_gas.unwrap_or_default() as i64,
+            created_at: None,
+            updated_at: None,
         };
-        sqlx::query(
-      r#"
-      INSERT INTO blocks (parent_hash, block_hash, block_number, gas_used, gas_limit, timestamp, base_fee_per_gas, blob_gas_used, excess_blob_gas)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      "#,
-    )
-    .bind(data.parent_hash)
-    .bind(data.block_hash)
-    .bind(data.block_number as f32)
-    .bind(data.gas_used as f32)
-    .bind(data.gas_limit as f32)
-    .bind(data.timestamp as f32)
-    .bind(data.base_fee_per_gas as f32)
-    .bind(data.blob_gas_used as f32)
-    .bind(data.excess_blob_gas as f32)
-    .execute(&self.db)
-    .await?;
+        self.db.insert_block(&data).await?;
         let transactions = full_block.transactions.as_transactions().unwrap().to_vec();
         for tx in transactions.clone() {
             let data = DbTransaction {
-                block_number: tx.block_number.unwrap(),
-                index: tx.transaction_index.unwrap(),
+                block_number: tx.block_number.unwrap() as i64,
+                index: tx.transaction_index.unwrap() as i64,
                 hash: tx.inner.tx_hash().to_string(),
                 from: tx.from.to_string(),
                 to: tx.to().unwrap_or_default().to_string(),
-                gas_price: tx.gas_price().unwrap_or_default(),
-                max_fee_per_gas: tx.max_fee_per_gas(),
-                max_priority_fee_per_gas: tx.max_priority_fee_per_gas().unwrap_or_default(),
-                max_fee_per_blob_gas: tx.max_fee_per_blob_gas().unwrap_or_default(),
-                gas: tx.gas_limit(),
+                gas_price: tx.gas_price().unwrap_or_default().to_string(),
+                max_fee_per_gas: tx.max_fee_per_gas().to_string(),
+                max_priority_fee_per_gas: tx
+                    .max_priority_fee_per_gas()
+                    .unwrap_or_default()
+                    .to_string(),
+                max_fee_per_blob_gas: tx.max_fee_per_blob_gas().unwrap_or_default().to_string(),
+                gas: tx.gas_limit() as i64,
                 value: tx.value().to_string(),
                 input: tx.input().to_string(),
-                nonce: tx.nonce(),
-                tx_type: tx.inner.tx_type() as u8,
+                nonce: tx.nonce() as i64,
+                tx_type: tx.inner.tx_type() as i8,
+                created_at: None,
+                updated_at: None,
             };
-            sqlx::query(
-        r#"
-        INSERT INTO transactions (block_number, index, hash, from, to, gas_price, max_fee_per_gas, max_priority_fee_per_gas, max_fee_per_blob_gas, gas, value, input, nonce, tx_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        "#,
-      )
-      .bind(data.block_number as f32)
-      .bind(data.index as i32)
-      .bind(data.hash)
-      .bind(data.from)
-      .bind(data.to)
-      .bind(data.gas_price.to_string())
-      .bind(data.max_fee_per_gas.to_string())
-      .bind(data.max_priority_fee_per_gas.to_string())
-      .bind(data.max_fee_per_blob_gas.to_string())
-      .bind(data.gas as f32)
-      .bind(data.value.to_string())
-      .bind(data.input)
-      .bind(data.nonce as i32)
-      .bind(data.tx_type as i16)
-      .execute(&self.db)
-      .await.unwrap();
+            self.db.insert_transaction(&data).await?;
         }
         Ok(transactions)
     }
@@ -191,24 +164,12 @@ impl ParallelAnalyzer {
                         tx_index, index, mask
                     );
                     let data = TransactionDag {
-                        block_number,
-                        source: tx_index,
-                        target: index,
+                        block_number: block_number as i64,
+                        source: tx_index as i64,
+                        target: index as i64,
                         dep_type: mask,
                     };
-                    sqlx::query(
-                        r#"
-            INSERT INTO transaction_dags (block_number, source, target, dep_type)
-            VALUES (?, ?, ?, ?)
-            "#,
-                    )
-                    .bind(data.block_number as f32)
-                    .bind(data.source as i32)
-                    .bind(data.target as i32)
-                    .bind(data.dep_type as i16)
-                    .execute(&self.db)
-                    .await
-                    .unwrap();
+                    self.db.insert_transaction_dag(&data).await?;
                 }
             }
         }
@@ -260,7 +221,7 @@ pub fn account_state_to_set(account_state: BTreeMap<Address, AccountState>) -> S
     }
 }
 
-pub fn check_tx_dependency(prev_state: &TransactionStateSet, state: &TransactionStateSet) -> u16 {
+pub fn check_tx_dependency(prev_state: &TransactionStateSet, state: &TransactionStateSet) -> i16 {
     let mut mask = 0;
     // check balance dependency
     if prev_state

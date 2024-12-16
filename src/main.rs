@@ -1,4 +1,7 @@
+use std::sync::Arc;
+
 use clap::Parser;
+use db::DB;
 use eyre::{Context, Result};
 use server::ServerState;
 use shadow_rs::shadow;
@@ -36,9 +39,14 @@ async fn main() -> Result<()> {
         .connect(&config.database_url)
         .await
         .context("could not connect to database_url")?;
-
-    let server_state = ServerState::new(db, config)?;
-    server_state.run().await?;
+    let db = Arc::new(DB::new(db));
+    let server_state = ServerState::new(db.clone(), config.clone())?;
+    let parallel_analyzer = parallel_analyzer::ParallelAnalyzer::new(
+        db,
+        config.execution_api.clone(),
+        config.start_block,
+    );
+    tokio::join!(server_state.run(), parallel_analyzer.run());
 
     Ok(())
 }

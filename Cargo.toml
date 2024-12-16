@@ -9,17 +9,21 @@ clap = { version = "4.5.23", features = ["derive"] }
 config = "0.14.1"
 eyre = "0.6.12"
 reqwest = { version = "0.12.9", features = ["json"] }
-serde = { version = "1.0.215", features = ["derive"] }
-serde_derive = "1.0.215"
-shadow-rs = "0.36.0"
+serde = { version = "1.0.216", features = ["derive"] }
+serde_derive = "1.0.216"
+shadow-rs = "0.37.0"
 tokio = { version = "1.42.0", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
 url = { version = "2.5.4", features = ["serde"] }
-sqlx = { version = "0.8.2", features = ["runtime-tokio-native-tls", "postgres", "uuid", "rust_decimal", "time", "json"] }
+sqlx = { version = "0.8.2", features = ["runtime-tokio", "tls-native-tls", 
+"macros", "migrate", "derive", "postgres", "uuid", "rust_decimal", "time", "json"] }
+time = { version = "0.3.37", features = ["serde"] }
+uuid = { version = "1.0", features = ["serde", "v4"] }
 tower-http = { version = "0.6.2", features = ["cors", "trace", "catch-panic", "util"] }
 rust_decimal = "1.36.0"
-alloy = { version = "0.7.3", features = ["providers", "transports", "transport-http", "rpc", "rpc-types", "provider-debug-api" ] }
+alloy = { version = "0.8.0", features = ["providers", "transports", "transport-http", "rpc", "rpc-types", "provider-debug-api" ] }
+validator = { version = "0.19.0", features = ["derive"] }
 
 [build-dependencies]
-shadow-rs = "0.36.0"
+shadow-rs = "0.37.0"

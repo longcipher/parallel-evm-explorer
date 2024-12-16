@@ -2,23 +2,23 @@ use std::sync::Arc;
 
 use axum::{routing::get, Router};
 use eyre::{Context, Result};
-use sqlx::{postgres::PgPoolOptions, PgPool};
 use tokio::net::TcpListener;
 use tower_http::{catch_panic::CatchPanicLayer, cors::CorsLayer};
 
 use crate::{
     config::Config,
+    db::DB,
     handlers::common::{handle_404, handle_panic, health_check},
 };
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ServerState {
-    pub db: PgPool,
+    pub db: Arc<DB>,
     pub config: Arc<Config>,
 }
 
 impl ServerState {
-    pub fn new(db: PgPool, config: Config) -> Result<Self> {
+    pub fn new(db: Arc<DB>, config: Config) -> Result<Self> {
         Ok(Self {
             db,
             config: Arc::new(config),
