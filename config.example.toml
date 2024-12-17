@@ -1,0 +1,5 @@
+execution_api = "rpc-with-debug-namespace"
+start_block = 2954719 # analyzer run from this block
+server_addr = "0.0.0.0:8327" # api server listen address
+database_url = "postgresql://localhost:5432/pevm_explorer" # database url
+chain_id = 17000 # holesky
