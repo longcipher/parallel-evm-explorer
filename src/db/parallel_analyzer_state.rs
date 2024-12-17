@@ -36,7 +36,7 @@ impl ParallelAnalyzerStateDB for DB {
     ) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
-            INSERT INTO parallel_analyzer_states (latest_block, chain_id, start_block, latest_analyzed_block)
+            INSERT INTO parallel_analyzer_state (latest_block, chain_id, start_block, latest_analyzed_block)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (chain_id) DO NOTHING
             "#,
@@ -56,7 +56,7 @@ impl ParallelAnalyzerStateDB for DB {
     ) -> Result<Option<ParallelAnalyzerState>, sqlx::Error> {
         let parallel_analyzer_state = sqlx::query_as::<_, ParallelAnalyzerState>(
             r#"
-            SELECT * FROM parallel_analyzer_states WHERE chain_id = $1
+            SELECT * FROM parallel_analyzer_state WHERE chain_id = $1
             "#,
         )
         .bind(chain_id)
@@ -70,7 +70,7 @@ impl ParallelAnalyzerStateDB for DB {
     ) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
-            UPDATE parallel_analyzer_states
+            UPDATE parallel_analyzer_state
             SET latest_block = $1, start_block = $2, latest_analyzed_block = $3
             WHERE chain_id = $4
             "#,
