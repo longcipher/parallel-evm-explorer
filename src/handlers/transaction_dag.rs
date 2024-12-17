@@ -25,7 +25,7 @@ pub async fn handle_transaction_dag(
         block_number
     } else {
         let block_number = state.execution_api_client.get_block_number().await?;
-        block_number as i64
+        block_number as i64 - 10_i64
     };
     let transactions = state
         .db

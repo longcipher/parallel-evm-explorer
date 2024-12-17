@@ -25,6 +25,10 @@ pub trait TransactionDagDB {
         &self,
         block_number: i64,
     ) -> Result<Vec<TransactionDag>, sqlx::Error>;
+    async fn delete_transaction_dags_by_block_number(
+        &self,
+        block_number: i64,
+    ) -> Result<(), sqlx::Error>;
 }
 
 impl TransactionDagDB for DB {
@@ -61,5 +65,20 @@ impl TransactionDagDB for DB {
         .fetch_all(&self.db)
         .await?;
         Ok(transaction_dags)
+    }
+
+    async fn delete_transaction_dags_by_block_number(
+        &self,
+        block_number: i64,
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            DELETE FROM transaction_dags WHERE block_number = $1
+            "#,
+        )
+        .bind(block_number)
+        .execute(&self.db)
+        .await?;
+        Ok(())
     }
 }

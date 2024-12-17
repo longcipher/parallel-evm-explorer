@@ -133,7 +133,15 @@ impl ParallelAnalyzer {
         let frame = write_trace.try_into_pre_state_frame().unwrap();
         let write_state = frame.as_diff().unwrap().post.clone();
         let read_set = account_state_to_set(read_state);
+        debug!(
+            "tx_hash: {:?}, Read set: {:?}",
+            tx_hash, read_set.storage_set
+        );
         let write_set = account_state_to_set(write_state);
+        debug!(
+            "tx_hash: {:?}, Write set: {:?}",
+            tx_hash, write_set.storage_set
+        );
 
         Ok(TransactionStateSet {
             read_set,
@@ -150,6 +158,9 @@ impl ParallelAnalyzer {
             let state = self.trace_transaction_state(tx_hash).await?;
             tx_states.insert(tx_index, state);
         }
+        self.db
+            .delete_transaction_dags_by_block_number(block_number as i64)
+            .await?;
         for (tx_index, state) in tx_states.clone() {
             for index in 1..tx_index {
                 let prev_state = tx_states.get(&index).unwrap();
@@ -167,6 +178,7 @@ impl ParallelAnalyzer {
                         created_at: None,
                         updated_at: None,
                     };
+                    debug!("dag: {:?}", (tx_index, index));
                     self.db.insert_transaction_dag(&data).await?;
                 }
             }
