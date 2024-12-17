@@ -2,7 +2,7 @@ use axum::{http::StatusCode, response::IntoResponse};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
-pub struct AppError(eyre::Error);
+pub struct AppError(pub eyre::Error);
 
 impl<E> From<E> for AppError
 where

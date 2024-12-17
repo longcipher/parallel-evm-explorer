@@ -21,6 +21,7 @@ use tracing::{debug, error, info};
 
 use crate::db::{
     block::{Block, BlockDB},
+    parallel_analyzer_state::ParallelAnalyzerStateDB,
     transaction::{Transaction as DbTransaction, TransactionDB},
     transaction_dag::{TransactionDag, TransactionDagDB},
     DB,
@@ -30,7 +31,8 @@ use crate::db::{
 pub struct ParallelAnalyzer {
     pub db: Arc<DB>,
     pub execution_api_client: Arc<RootProvider<Http<Client>>>,
-    pub start_block: u64,
+    pub start_block: i64,
+    pub chain_id: i64,
 }
 
 #[derive(Debug, Clone)]
@@ -47,12 +49,13 @@ pub struct TransactionStateSet {
 }
 
 impl ParallelAnalyzer {
-    pub fn new(db: Arc<DB>, execution_api: Url, start_block: u64) -> Self {
+    pub fn new(db: Arc<DB>, execution_api: Url, start_block: i64, chain_id: i64) -> Self {
         let provider = ProviderBuilder::new().on_http(execution_api);
         Self {
             db,
             execution_api_client: Arc::new(provider),
             start_block,
+            chain_id,
         }
     }
 
@@ -149,8 +152,8 @@ impl ParallelAnalyzer {
         })
     }
 
-    pub async fn analyse_block(&self, block_number: u64) -> Result<()> {
-        let transactions = self.get_block_transactions(block_number).await?;
+    pub async fn analyse_block(&self, block_number: i64, latest_block_number: i64) -> Result<()> {
+        let transactions = self.get_block_transactions(block_number as u64).await?;
         let mut tx_states = BTreeMap::new();
         for tx in transactions {
             let tx_hash = tx.inner.tx_hash();
@@ -159,7 +162,7 @@ impl ParallelAnalyzer {
             tx_states.insert(tx_index, state);
         }
         self.db
-            .delete_transaction_dags_by_block_number(block_number as i64)
+            .delete_transaction_dags_by_block_number(block_number)
             .await?;
         for (tx_index, state) in tx_states.clone() {
             for index in 1..tx_index {
@@ -171,7 +174,7 @@ impl ParallelAnalyzer {
                         tx_index, index, mask
                     );
                     let data = TransactionDag {
-                        block_number: block_number as i64,
+                        block_number,
                         source_tx: tx_index as i64,
                         target_tx: index as i64,
                         dep_type: mask,
@@ -183,13 +186,23 @@ impl ParallelAnalyzer {
                 }
             }
         }
+        let mut parallel_analyzer_state = self
+            .db
+            .get_parallel_analyzer_state_by_chainid(self.chain_id)
+            .await?
+            .unwrap();
+        parallel_analyzer_state.latest_analyzed_block = block_number;
+        parallel_analyzer_state.latest_block = latest_block_number;
+        self.db
+            .update_parallel_analyzer_state_by_chainid(&parallel_analyzer_state)
+            .await?;
         Ok(())
     }
 
     pub async fn run(&self) -> Result<()> {
         let mut block_number = self.start_block;
         loop {
-            let latest_block_number = self.execution_api_client.get_block_number().await?;
+            let latest_block_number = self.execution_api_client.get_block_number().await? as i64;
             info!(
                 "Analysing block {}, latest_block: {}",
                 block_number, latest_block_number
@@ -198,7 +211,7 @@ impl ParallelAnalyzer {
                 tokio::time::sleep(tokio::time::Duration::from_secs(12)).await;
                 continue;
             }
-            match self.analyse_block(block_number).await {
+            match self.analyse_block(block_number, latest_block_number).await {
                 Ok(_) => {
                     info!("Block {} analysed successfully", block_number);
                     block_number += 1;

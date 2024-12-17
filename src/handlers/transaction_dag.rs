@@ -5,9 +5,13 @@ use axum::{
     extract::{Query, State},
     Json,
 };
+use eyre::eyre;
 
 use crate::{
-    db::{transaction::TransactionDB, transaction_dag::TransactionDagDB},
+    db::{
+        parallel_analyzer_state::ParallelAnalyzerStateDB, transaction::TransactionDB,
+        transaction_dag::TransactionDagDB,
+    },
     models::{
         common::AppError,
         transaction_dag::{
@@ -59,4 +63,17 @@ pub async fn handle_transaction_dag(
         transactions,
         dags: transaction_dags,
     }))
+}
+
+pub async fn handle_parallel_analyzer_state(
+    State(state): State<Arc<ServerState>>,
+) -> Result<Json<i64>, AppError> {
+    let analyzer_state = state
+        .db
+        .get_parallel_analyzer_state_by_chainid(state.chain_id)
+        .await?;
+    let analyzer_state =
+        analyzer_state.ok_or(AppError(eyre!("parallel analyzer state not found")))?;
+
+    Ok(Json(analyzer_state.latest_analyzed_block))
 }

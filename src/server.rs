@@ -14,7 +14,7 @@ use crate::{
     db::DB,
     handlers::{
         common::{handle_404, handle_panic, health_check},
-        transaction_dag::handle_transaction_dag,
+        transaction_dag::{handle_parallel_analyzer_state, handle_transaction_dag},
     },
 };
 
@@ -23,6 +23,7 @@ pub struct ServerState {
     pub db: Arc<DB>,
     pub config: Arc<Config>,
     pub execution_api_client: Arc<RootProvider<Http<Client>>>,
+    pub chain_id: i64,
 }
 
 impl ServerState {
@@ -30,8 +31,9 @@ impl ServerState {
         let provider = ProviderBuilder::new().on_http(config.execution_api.clone());
         Ok(Self {
             db,
-            config: Arc::new(config),
+            config: Arc::new(config.clone()),
             execution_api_client: Arc::new(provider),
+            chain_id: config.chain_id,
         })
     }
 
@@ -39,6 +41,10 @@ impl ServerState {
         Router::new()
             .route("/health", get(health_check))
             .route("/data/evm/transaction-dag", get(handle_transaction_dag))
+            .route(
+                "/data/evm/parallel-analyzer-state",
+                get(handle_parallel_analyzer_state),
+            )
             .fallback(get(handle_404))
             .layer(CatchPanicLayer::custom(handle_panic))
             .layer(CorsLayer::permissive())

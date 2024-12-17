@@ -16,7 +16,8 @@ pub struct Cli {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {
     pub execution_api: Url,
-    pub start_block: u64,
+    pub start_block: i64,
+    pub chain_id: i64,
     pub server_addr: String,
     pub database_url: String,
 }
