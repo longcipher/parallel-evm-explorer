@@ -28,3 +28,11 @@ pub struct TransactionDagResponse {
     pub transactions: Vec<Transaction>,
     pub dags: Vec<TransactionDag>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ParallelAnalyzerStateResp {
+    pub latest_block: i64,
+    pub chain_id: i64,
+    pub start_block: i64,
+    pub latest_analyzed_block: i64,
+}

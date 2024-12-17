@@ -15,7 +15,8 @@ use crate::{
     models::{
         common::AppError,
         transaction_dag::{
-            Transaction, TransactionDag, TransactionDagQuery, TransactionDagResponse,
+            ParallelAnalyzerStateResp, Transaction, TransactionDag, TransactionDagQuery,
+            TransactionDagResponse,
         },
     },
     server::ServerState,
@@ -67,7 +68,7 @@ pub async fn handle_transaction_dag(
 
 pub async fn handle_parallel_analyzer_state(
     State(state): State<Arc<ServerState>>,
-) -> Result<Json<i64>, AppError> {
+) -> Result<Json<ParallelAnalyzerStateResp>, AppError> {
     let analyzer_state = state
         .db
         .get_parallel_analyzer_state_by_chainid(state.chain_id)
@@ -75,5 +76,10 @@ pub async fn handle_parallel_analyzer_state(
     let analyzer_state =
         analyzer_state.ok_or(AppError(eyre!("parallel analyzer state not found")))?;
 
-    Ok(Json(analyzer_state.latest_analyzed_block))
+    Ok(Json(ParallelAnalyzerStateResp {
+        latest_block: analyzer_state.latest_block,
+        chain_id: analyzer_state.chain_id,
+        start_block: analyzer_state.start_block,
+        latest_analyzed_block: analyzer_state.latest_analyzed_block,
+    }))
 }
