@@ -2,9 +2,9 @@
 
 Parallel EVM explorer is a tool to analyze the parallel execution of EVM transactions in a specific block. It aims to support all EVM compatible chains.
 
-## Parallel Scanner API Document
+## API Document
 
-* <https://parallel-evm-analyzer.apifox.cn>
+* <https://parallel-evm-explorer.apifox.cn>
 
 ## DB Migration
 
@@ -15,7 +15,7 @@ sqlx db setup
 ## Run Server
 
 ```sh
-parallel-evm-analyzer -c config.toml
+parallel-evm-explorer -c config.toml
 ```
 
 example config.toml

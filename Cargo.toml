@@ -4,24 +4,47 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+alloy = { version = "0.8.1", features = [
+    "providers",
+    "transports",
+    "transport-http",
+    "rpc",
+    "rpc-types",
+    "provider-debug-api",
+] }
 axum = "0.7.9"
 clap = { version = "4.5.23", features = ["derive"] }
-config = "0.14.1"
+config = "0.15.0"
 eyre = "0.6.12"
 reqwest = { version = "0.12.9", features = ["json"] }
 serde = { version = "1.0.216", features = ["derive"] }
 serde_derive = "1.0.216"
 shadow-rs = "0.37.0"
+sqlx = { version = "0.8.2", features = [
+    "runtime-tokio",
+    "tls-native-tls",
+    "macros",
+    "migrate",
+    "derive",
+    "postgres",
+    "rust_decimal",
+    "time",
+    "json",
+] }
+time = { version = "0.3.37", features = ["serde"] }
 tokio = { version = "1.42.0", features = ["full"] }
+tower-http = { version = "0.6.2", features = [
+    "cors",
+    "trace",
+    "catch-panic",
+    "util",
+] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
 url = { version = "2.5.4", features = ["serde"] }
-sqlx = { version = "0.8.2", features = ["runtime-tokio", "tls-native-tls", "macros", "migrate", "derive", "postgres", "rust_decimal", "time", "json"] }
-time = { version = "0.3.37", features = ["serde"] }
-tower-http = { version = "0.6.2", features = ["cors", "trace", "catch-panic", "util"] }
-rust_decimal = "1.36.0"
-alloy = { version = "0.8.0", features = ["providers", "transports", "transport-http", "rpc", "rpc-types", "provider-debug-api" ] }
-validator = { version = "0.19.0", features = ["derive"] }
+
+[package.metadata.cargo-machete]
+ignored = ["url", "time"]
 
 [build-dependencies]
 shadow-rs = "0.37.0"

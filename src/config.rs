@@ -25,7 +25,7 @@ pub struct Config {
 impl Config {
     pub fn new(config: Option<PathBuf>) -> Result<Self, ConfigError> {
         let c = FileConfig::builder()
-            .add_source(File::from(config.unwrap()))
+            .add_source(File::from(config.expect("Config file not found")))
             .add_source(Environment::with_prefix("PEVM"))
             .build()?;
         c.try_deserialize()

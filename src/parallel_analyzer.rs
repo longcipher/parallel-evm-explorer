@@ -67,7 +67,7 @@ impl ParallelAnalyzer {
                 BlockTransactionsKind::Full,
             )
             .await?
-            .unwrap();
+            .expect("Block not found");
         let data = Block {
             parent_hash: full_block.header.parent_hash.to_string(),
             block_hash: full_block.header.hash.to_string(),
@@ -82,11 +82,15 @@ impl ParallelAnalyzer {
             updated_at: None,
         };
         self.db.insert_block(&data).await?;
-        let transactions = full_block.transactions.as_transactions().unwrap().to_vec();
+        let transactions = full_block
+            .transactions
+            .as_transactions()
+            .expect("convert to inner transaction failed")
+            .to_vec();
         for tx in transactions.clone() {
             let data = DbTransaction {
-                block_number: tx.block_number.unwrap() as i64,
-                tx_index: tx.transaction_index.unwrap() as i64,
+                block_number: tx.block_number.expect("block number not found") as i64,
+                tx_index: tx.transaction_index.expect("transaction index not found") as i64,
                 tx_hash: tx.inner.tx_hash().to_string(),
                 tx_from: tx.from.to_string(),
                 tx_to: tx.to().unwrap_or_default().to_string(),
@@ -120,8 +124,10 @@ impl ParallelAnalyzer {
             )
             .await?;
         // balance read
-        let frame = read_trace.try_into_pre_state_frame().unwrap();
-        let read_state = frame.as_default().unwrap().clone().0;
+        let frame = read_trace
+            .try_into_pre_state_frame()
+            .expect("pre state frame not found");
+        let read_state = frame.as_default().expect("frame parse failed").clone().0;
         // fetch transaction write states
         let write_trace = self
             .execution_api_client
@@ -133,8 +139,14 @@ impl ParallelAnalyzer {
                 }),
             )
             .await?;
-        let frame = write_trace.try_into_pre_state_frame().unwrap();
-        let write_state = frame.as_diff().unwrap().post.clone();
+        let frame = write_trace
+            .try_into_pre_state_frame()
+            .expect("frame not found");
+        let write_state = frame
+            .as_diff()
+            .expect("convert to diff mode failed")
+            .post
+            .clone();
         let read_set = account_state_to_set(read_state);
         debug!(
             "tx_hash: {:?}, Read set: {:?}",
@@ -157,7 +169,7 @@ impl ParallelAnalyzer {
         let mut tx_states = BTreeMap::new();
         for tx in transactions {
             let tx_hash = tx.inner.tx_hash();
-            let tx_index = tx.transaction_index.unwrap();
+            let tx_index = tx.transaction_index.expect("transaction index not found") as i64;
             let state = self.trace_transaction_state(tx_hash).await?;
             tx_states.insert(tx_index, state);
         }
@@ -166,7 +178,7 @@ impl ParallelAnalyzer {
             .await?;
         for (tx_index, state) in tx_states.clone() {
             for index in 1..tx_index {
-                let prev_state = tx_states.get(&index).unwrap();
+                let prev_state = tx_states.get(&index).expect("prev state not found");
                 let mask = check_tx_dependency(prev_state, &state);
                 if mask != 0 {
                     debug!(
@@ -175,8 +187,8 @@ impl ParallelAnalyzer {
                     );
                     let data = TransactionDag {
                         block_number,
-                        source_tx: tx_index as i64,
-                        target_tx: index as i64,
+                        source_tx: tx_index,
+                        target_tx: index,
                         dep_type: mask,
                         created_at: None,
                         updated_at: None,
@@ -190,7 +202,7 @@ impl ParallelAnalyzer {
             .db
             .get_parallel_analyzer_state_by_chainid(self.chain_id)
             .await?
-            .unwrap();
+            .expect("parallel analyzer state not found");
         parallel_analyzer_state.latest_analyzed_block = block_number;
         parallel_analyzer_state.latest_block = latest_block_number;
         self.db

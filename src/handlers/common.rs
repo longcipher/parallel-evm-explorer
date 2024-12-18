@@ -24,7 +24,7 @@ pub fn handle_panic(err: Box<dyn Any + Send + 'static>) -> AxumResponse {
     error!("Internal Server Error: {:}", detail);
     (
         StatusCode::INTERNAL_SERVER_ERROR,
-        format!("Internal Server Error: {:}", detail),
+        format!("Internal Server Error: {detail:}"),
     )
         .into_response()
 }

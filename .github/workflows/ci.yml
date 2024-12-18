@@ -1,0 +1,55 @@
+name: Rust Check & Build
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  # Not needed in CI, should make things a bit faster
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  # Build smaller artifacts to avoid running out of space in CI
+  RUSTFLAGS: -C strip=debuginfo
+
+jobs:
+  check_and_build:
+    name: Check and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@main
+        with:
+          access_token: ${{ github.token }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy,rustfmt,miri
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: taplo-cli,cargo-machete,just
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+      - name: Lint
+        run: just lint
