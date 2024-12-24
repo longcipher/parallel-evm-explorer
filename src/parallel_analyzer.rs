@@ -239,13 +239,13 @@ impl ParallelAnalyzer {
 }
 
 pub fn account_state_to_set(account_state: BTreeMap<Address, AccountState>) -> StateSet {
-    let mut balance_set = HashSet::new();
+    let balance_set = HashSet::new();
     let mut code_set = HashSet::new();
     let mut storage_set = HashSet::new();
     for (address, state) in account_state {
-        if state.balance.is_some() {
-            balance_set.insert(address);
-        }
+        // if state.balance.is_some() {
+        //     balance_set.insert(address);
+        // }
         if state.code.is_some() {
             code_set.insert(address);
         }
