@@ -31,39 +31,48 @@ export default function Home() {
       setLoading(() => true);
       get(url.transactionDag, { block_number })
         .then((res) => {
-          let r = 5;
-          let preX;
+          if (!res.transactions) {
+            throw new Error('Invalid response format');
+          }
 
-          // 处理节点数据
-          const nodes = (res.transactions || []).map((item, i) => {
-            const x =
-              i === 0 ? 0 : Math.ceil(i / 4) * ((i - 1) % 4 <= 1 ? 1 : -1) * r;
-            const y = i === 0 ? 0 : -preX;
-            preX = x;
-
-            return {
-              ...item,
-              id: item.index,
-              label: "" + item.index,
-              size: 10,
-              x,
-              y,
-            };
-          });
-
-          // 处理边数据
-          const edges = (res.dags || []).map((item, i) => ({
-            ...item,
-            id: "e" + i,
-            type: "arrow", // 设置为箭头类型
-          }));
-
-          // 更新 graphData 的状态
+          const nodes = processTransactionNodes(res.transactions);
+          const edges = processTransactionEdges(res.dags);
           setGraphData({ nodes, edges });
+        })
+        .catch((error) => {
+          console.error('Failed to load transaction DAG:', error);
+          // Show error state to user
+          setGraphData({ nodes: [], edges: [] });
         })
         .finally(() => {
           setLoading(() => false);
         });
+    }
+
+    function processTransactionNodes(transactions) {
+      let r = 5;
+      let preX;
+      return transactions.map((item, i) => {
+        const x = i === 0 ? 0 : Math.ceil(i / 4) * ((i - 1) % 4 <= 1 ? 1 : -1) * r;
+        const y = i === 0 ? 0 : -preX;
+        preX = x;
+        return {
+          ...item,
+          id: item.index,
+          label: "" + item.index,
+          size: 10,
+          x,
+          y,
+        };
+      });
+    }
+
+    function processTransactionEdges(dags) {
+      return (dags || []).map((item, i) => ({
+        ...item,
+        id: "e" + i,
+        type: "arrow",
+      }));
     }
 
     // 调用接口并加载数据
