@@ -5,7 +5,7 @@ const fetchRequest = async (url, options = {}) => {
     method,
     headers: { 
       'Content-Type': 'application/json',
-      'Authorization': '', // 如果有 token，放这里
+      ...(options.token ? { 'Authorization': `Bearer ${options.token}` } : {}),
       ...headers 
     },
     ...restOptions,
