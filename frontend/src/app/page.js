@@ -77,7 +77,7 @@ export default function Home() {
 
     // 调用接口并加载数据
     loadTransactionDag(blockNumber);
-  }, []); // 仅在组件挂载时调用一次
+  }, [blockNumber]); // Re-run when blockNumber changes
 
   return (
     <div className="flex flex-col h-screen gap-4 p-4">
