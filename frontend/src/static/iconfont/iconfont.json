@@ -1,0 +1,51 @@
+{
+  "id": "4785399",
+  "name": "parallel",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "9358715",
+      "name": "pause",
+      "font_class": "pause",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "212328",
+      "name": "play_fill",
+      "font_class": "playfill",
+      "unicode": "e74f",
+      "unicode_decimal": 59215
+    },
+    {
+      "icon_id": "577318",
+      "name": "问号-fill",
+      "font_class": "wenhaofill",
+      "unicode": "e72c",
+      "unicode_decimal": 59180
+    },
+    {
+      "icon_id": "577319",
+      "name": "问号",
+      "font_class": "wenhao",
+      "unicode": "e72d",
+      "unicode_decimal": 59181
+    },
+    {
+      "icon_id": "42559534",
+      "name": "左",
+      "font_class": "zuo",
+      "unicode": "e6ce",
+      "unicode_decimal": 59086
+    },
+    {
+      "icon_id": "42559536",
+      "name": "右",
+      "font_class": "you",
+      "unicode": "e6cf",
+      "unicode_decimal": 59087
+    }
+  ]
+}
