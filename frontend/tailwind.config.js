@@ -18,7 +18,7 @@ module.exports = {
         cpurple: "#CE93D8",
         cblue: "#90CAF9",
         cgreen: "#008000",
-        cgray: '#828585',
+        cgray: "#828585",
       }),
     },
   },
