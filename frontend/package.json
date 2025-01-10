@@ -1,23 +1,25 @@
 {
-  "name": "next-demo",
+  "name": "parallel-evm-explorer",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "biome check",
+    "fix": "biome check --fix --unsafe",
+    "format": "biome format --write"
   },
   "dependencies": {
-    "echarts": "^5.5.1",
     "graphology": "^0.25.4",
-    "next": "15.0.2",
-    "react": "19.0.0-rc-02c0e824-20241028",
-    "react-dom": "19.0.0-rc-02c0e824-20241028",
+    "next": "15.1.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "sigma": "^3.0.0"
   },
   "devDependencies": {
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1"
+    "@biomejs/biome": "1.9.4",
+    "postcss": "8.4.49",
+    "tailwindcss": "3.4.17"
   }
 }

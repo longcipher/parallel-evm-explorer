@@ -1,4 +1,4 @@
-name: Rust Check & Build
+name: Rust Lint
 
 on:
   push:

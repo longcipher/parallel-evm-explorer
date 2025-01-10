@@ -1,0 +1,33 @@
+name: JS Lint
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  check_and_build:
+    name: Check and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: mise
+        uses: jdx/mise-action@v2
+      - name: Change directory to frontend
+        run: cd frontend
+      - name: npm ci
+        run: npm ci --no-audit
+      - name: npm lint
+        run: npm run lint --if-present
