@@ -29,7 +29,7 @@ jobs:
         uses: jdx/mise-action@v2
       - name: Change directory to frontend
         run: cd frontend
-      - name: npm ci
-        run: npm ci --no-audit
+      - name: npm install
+        run: npm install --no-audit
       - name: npm lint
         run: npm run lint --if-present
