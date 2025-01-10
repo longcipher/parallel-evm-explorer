@@ -12,7 +12,7 @@ const fetchRequest = async (url, options = {}) => {
 
   if (method === "GET" && Object.keys(params).length > 0) {
     const queryString = new URLSearchParams(params).toString();
-    const updatedUrl = `${url}?${queryString}`;
+    url = `${url}?${queryString}`;
   }
 
   if (method === "POST" && Object.keys(params).length > 0) {
@@ -21,7 +21,7 @@ const fetchRequest = async (url, options = {}) => {
 
   try {
     const response = await fetch(
-      `${process.env.PARALLEL_EVM_EXPLORER_SERVER}${method === "GET" && Object.keys(params).length > 0 ? updatedUrl : url}`,
+      `${process.env.NEXT_PUBLIC_API_URL}${url}`,
       config,
     );
 

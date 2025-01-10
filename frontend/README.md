@@ -12,7 +12,7 @@ npm run lint
 .env
 
 ```sh
-PARALLEL_EVM_EXPLORER_SERVER=http://65.109.122.171:8327
+PARALLEL_EVM_EXPLORER_SERVER=http://<your-server-host>:<port>
 ```
 
 ```sh

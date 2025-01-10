@@ -12,8 +12,6 @@ on:
   pull_request:
     paths:
       - 'frontend/**'
-    paths-ignore:
-      - '**.md'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -31,5 +29,7 @@ jobs:
         run: cd frontend
       - name: npm install
         run: npm install --no-audit
+        working-directory: ./frontend
       - name: npm lint
         run: npm run lint --if-present
+        working-directory: ./frontend
