@@ -10,6 +10,8 @@ on:
     paths-ignore:
       - '**.md'
   pull_request:
+    paths:
+      - 'src/**'
     paths-ignore:
       - '**.md'
   # Allows you to run this workflow manually from the Actions tab
