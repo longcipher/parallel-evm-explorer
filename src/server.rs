@@ -37,7 +37,7 @@ impl ServerState {
         })
     }
 
-    fn config_router(&self, server_state: Arc<ServerState>) -> Router {
+    fn config_router(&self) -> Router {
         Router::new()
             .route("/health", get(health_check))
             .route("/data/evm/transaction-dag", get(handle_transaction_dag))
@@ -48,11 +48,11 @@ impl ServerState {
             .fallback(get(handle_404))
             .layer(CatchPanicLayer::custom(handle_panic))
             .layer(CorsLayer::permissive())
-            .with_state(server_state.clone())
+            .with_state(Arc::new(self.clone()))
     }
 
     pub async fn run(&self) -> Result<()> {
-        let server = self.config_router(Arc::new(self.clone()));
+        let server = self.config_router();
 
         let listener = TcpListener::bind(&self.config.server_addr).await?;
         axum::serve(listener, server).await?;
