@@ -105,7 +105,8 @@
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "double"
+      "quoteStyle": "double",
+      "lineEnding": "lf"
     }
   }
 }
