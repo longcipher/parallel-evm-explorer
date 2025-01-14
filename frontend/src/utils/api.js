@@ -21,7 +21,7 @@ const fetchRequest = async (url, options = {}) => {
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}${url}`,
+      `${process.env.PARALLEL_EVM_EXPLORER_SERVER}${url}`,
       config,
     );
 
