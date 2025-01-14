@@ -12,7 +12,7 @@ npm run lint
 .env
 
 ```sh
-PARALLEL_EVM_EXPLORER_SERVER=http://<your-server-host>:<port>
+NEXT_PUBLIC_API_SERVER=http://<your-server-host>:<port>
 ```
 
 ```sh
