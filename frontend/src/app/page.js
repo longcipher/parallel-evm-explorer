@@ -77,10 +77,10 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen gap-4 p-4">
-      <nav className="flex gap-4">
+      {/* <nav className="flex gap-4">
         <a className="rounded transition-colors flex items-center justify-center bg-cpurple gap-2 hover:bg-[#AB47BC] dark:hover:bg-[#ccc] h-10 px-8 py-4">
           <i className="iconfont icon-pause" />
-          {/* <i className="iconfont icon-playfill"></i> */}
+          <i className="iconfont icon-playfill"></i>
         </a>
         <div className="flex gap-1">
           <a className="rounded transition-colors flex items-center justify-center bg-cblue gap-2 hover:bg-[#42A5F5] dark:hover:bg-[#ccc] h-10 px-8 py-4">
@@ -90,7 +90,7 @@ export default function Home() {
             <i className="iconfont icon-you" />
           </a>
         </div>
-      </nav>
+      </nav> */}
       <main className="flex-1 flex flex-col rounded border-2 border-orange-500">
         <div className="bg-blue-100 font-600 px-4 py-2 text-lg">
           Block: {blockNumber}
