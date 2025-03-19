@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use clap::Parser;
-use db::{parallel_analyzer_state::ParallelAnalyzerState, DB};
+use db::{DB, parallel_analyzer_state::ParallelAnalyzerState};
 use eyre::{Context, Result};
 use server::ServerState;
 use shadow_rs::shadow;

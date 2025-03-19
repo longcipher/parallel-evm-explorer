@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use alloy::{
-    providers::{ProviderBuilder, RootProvider},
-    transports::http::{Client, Http},
+    network::Ethereum,
+    providers::{Provider, RootProvider},
 };
-use axum::{routing::get, Router};
+use axum::{Router, routing::get};
 use eyre::Result;
 use tokio::net::TcpListener;
 use tower_http::{catch_panic::CatchPanicLayer, cors::CorsLayer};
@@ -18,17 +18,17 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ServerState {
     pub db: Arc<DB>,
     pub config: Arc<Config>,
-    pub execution_api_client: Arc<RootProvider<Http<Client>>>,
+    pub execution_api_client: Arc<RootProvider<Ethereum>>,
     pub chain_id: i64,
 }
 
 impl ServerState {
     pub fn new(db: Arc<DB>, config: Config) -> Result<Self> {
-        let provider = ProviderBuilder::new().on_http(config.execution_api.clone());
+        let provider = RootProvider::builder().on_http(config.execution_api.clone());
         Ok(Self {
             db,
             config: Arc::new(config.clone()),

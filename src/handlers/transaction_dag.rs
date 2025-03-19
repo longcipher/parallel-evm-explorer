@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use alloy::providers::Provider;
 use axum::{
-    extract::{Query, State},
     Json,
+    extract::{Query, State},
 };
 use eyre::eyre;
 

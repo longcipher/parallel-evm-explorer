@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{types::time::OffsetDateTime, FromRow};
+use sqlx::{FromRow, types::time::OffsetDateTime};
 
 use super::DB;
 
@@ -27,7 +27,7 @@ pub struct Transaction {
 pub trait TransactionDB {
     async fn insert_transaction(&self, transaction: &Transaction) -> Result<(), sqlx::Error>;
     async fn get_transaction_by_hash(&self, hash: &str)
-        -> Result<Option<Transaction>, sqlx::Error>;
+    -> Result<Option<Transaction>, sqlx::Error>;
     async fn get_transactions_by_block_number(
         &self,
         block_number: i64,

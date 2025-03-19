@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{types::time::OffsetDateTime, FromRow};
+use sqlx::{FromRow, types::time::OffsetDateTime};
 use tracing::debug;
 
 use super::DB;

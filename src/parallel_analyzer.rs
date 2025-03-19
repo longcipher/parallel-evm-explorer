@@ -6,31 +6,30 @@ use std::{
 use alloy::{
     consensus::Transaction,
     eips::BlockNumberOrTag,
-    network::primitives::BlockTransactionsKind,
-    primitives::{Address, TxHash, B256},
-    providers::{ext::DebugApi, Provider, ProviderBuilder, RootProvider},
+    network::Ethereum,
+    primitives::{Address, B256, TxHash},
+    providers::{Provider, RootProvider, ext::DebugApi},
     rpc::types::{
-        trace::geth::{AccountState, GethDebugTracingOptions, PreStateConfig},
         Transaction as AlloyTransaction,
+        trace::geth::{AccountState, GethDebugTracingOptions, PreStateConfig},
     },
-    transports::http::{Client, Http},
 };
 use eyre::Result;
 use reqwest::Url;
 use tracing::{debug, error, info};
 
 use crate::db::{
+    DB,
     block::{Block, BlockDB},
     parallel_analyzer_state::ParallelAnalyzerStateDB,
     transaction::{Transaction as DbTransaction, TransactionDB},
     transaction_dag::{TransactionDag, TransactionDagDB},
-    DB,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ParallelAnalyzer {
     pub db: Arc<DB>,
-    pub execution_api_client: Arc<RootProvider<Http<Client>>>,
+    pub execution_api_client: Arc<RootProvider<Ethereum>>,
     pub start_block: i64,
     pub chain_id: i64,
 }
@@ -50,7 +49,7 @@ pub struct TransactionStateSet {
 
 impl ParallelAnalyzer {
     pub fn new(db: Arc<DB>, execution_api: Url, start_block: i64, chain_id: i64) -> Self {
-        let provider = ProviderBuilder::new().on_http(execution_api);
+        let provider = RootProvider::builder().on_http(execution_api);
         Self {
             db,
             execution_api_client: Arc::new(provider),
@@ -62,10 +61,7 @@ impl ParallelAnalyzer {
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Vec<AlloyTransaction>> {
         let full_block = self
             .execution_api_client
-            .get_block_by_number(
-                BlockNumberOrTag::Number(block_number),
-                BlockTransactionsKind::Full,
-            )
+            .get_block_by_number(BlockNumberOrTag::Number(block_number))
             .await?
             .expect("Block not found");
         let data = Block {
@@ -88,11 +84,12 @@ impl ParallelAnalyzer {
             .expect("convert to inner transaction failed")
             .to_vec();
         for tx in transactions.clone() {
+            let tx_req = tx.clone().into_request();
             let data = DbTransaction {
                 block_number: tx.block_number.expect("block number not found") as i64,
                 tx_index: tx.transaction_index.expect("transaction index not found") as i64,
                 tx_hash: tx.inner.tx_hash().to_string(),
-                tx_from: tx.from.to_string(),
+                tx_from: tx_req.from.unwrap_or_default().to_string(),
                 tx_to: tx.to().unwrap_or_default().to_string(),
                 gas_price: tx.gas_price().unwrap_or_default().to_string(),
                 max_fee_per_gas: tx.max_fee_per_gas().to_string(),

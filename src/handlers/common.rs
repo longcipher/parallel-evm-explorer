@@ -1,10 +1,10 @@
 use std::{any::Any, sync::Arc};
 
 use axum::{
+    Json,
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response as AxumResponse},
-    Json,
 };
 use tracing::error;
 
